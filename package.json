@@ -14,5 +14,16 @@
     "community",
     "instrument-sharing"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangSiraaa/wangxt-776-1.git"
+  },
+  "author": "",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/wangSiraaa/wangxt-776-1/issues"
+  },
+  "homepage": "https://github.com/wangSiraaa/wangxt-776-1#readme"
 }

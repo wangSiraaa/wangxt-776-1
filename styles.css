@@ -1125,7 +1125,245 @@ body {
     font-size: 15px;
 }
 
+.scan-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.scan-area {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eef0f5;
+    text-align: center;
+}
+
+.scan-viewport {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.scan-frame {
+    width: 240px;
+    height: 240px;
+    border: 3px solid #667eea;
+    border-radius: 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f0f5ff 0%, #e6eeff 100%);
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #667eea, transparent);
+    animation: scanMove 2s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+    0% { top: 0; }
+    50% { top: calc(100% - 3px); }
+    100% { top: 0; }
+}
+
+.scan-icon {
+    font-size: 64px;
+    z-index: 1;
+}
+
+.scan-hint {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.scan-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-scan,
+.btn-scan-manual {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-scan {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-scan:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-scan-manual {
+    background: white;
+    color: #667eea;
+    border: 1px solid #667eea;
+}
+
+.btn-scan-manual:hover {
+    background: #f0f5ff;
+}
+
+.scan-history {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #eef0f5;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.scan-history h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eef0f5;
+}
+
+.scan-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.scan-record {
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+}
+
+.scan-record-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.scan-record-emoji {
+    font-size: 32px;
+}
+
+.scan-record-info {
+    flex: 1;
+}
+
+.scan-record-info h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 2px;
+}
+
+.scan-record-info p {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+}
+
+.scan-record-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+}
+
+.scan-record-message {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.scan-record-actions {
+    text-align: right;
+}
+
+.scan-result {
+    margin-bottom: 20px;
+}
+
+.scan-result-instrument {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.scan-result-emoji {
+    font-size: 48px;
+}
+
+.scan-result-instrument h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.scan-result-instrument p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.scan-result-location {
+    color: #999;
+    font-size: 13px;
+}
+
+.scan-result-status {
+    text-align: right;
+}
+
 @media (max-width: 768px) {
+    .scan-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .scan-frame {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .scan-icon {
+        font-size: 48px;
+    }
+    
+    .scan-area {
+        padding: 24px;
+    }
+    
+    .scan-history {
+        max-height: 400px;
+    }
+    
     .header-content {
         padding: 16px;
     }

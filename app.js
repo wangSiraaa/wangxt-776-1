@@ -5,7 +5,8 @@ const STORAGE_KEYS = {
     ACTIVITIES: 'music_locker_activities',
     WAITLIST: 'music_locker_waitlist',
     USER: 'music_locker_user',
-    ROLE: 'music_locker_role'
+    ROLE: 'music_locker_role',
+    SCAN_HISTORY: 'music_locker_scan_history'
 };
 
 const RISK_LEVELS = {
@@ -95,6 +96,9 @@ const StorageManager = {
         }
         if (!this.get(STORAGE_KEYS.ROLE, null)) {
             this.set(STORAGE_KEYS.ROLE, 'resident');
+        }
+        if (!this.get(STORAGE_KEYS.SCAN_HISTORY, null)) {
+            this.set(STORAGE_KEYS.SCAN_HISTORY, []);
         }
     }
 };
@@ -186,6 +190,21 @@ const DataService = {
     },
     setCurrentRole(role) {
         StorageManager.set(STORAGE_KEYS.ROLE, role);
+    },
+    getScanHistory() {
+        return StorageManager.get(STORAGE_KEYS.SCAN_HISTORY, []);
+    },
+    addScanRecord(record) {
+        const history = this.getScanHistory();
+        history.unshift(record);
+        if (history.length > 50) {
+            history.pop();
+        }
+        StorageManager.set(STORAGE_KEYS.SCAN_HISTORY, history);
+        return record;
+    },
+    clearScanHistory() {
+        StorageManager.set(STORAGE_KEYS.SCAN_HISTORY, []);
     }
 };
 
@@ -397,6 +416,9 @@ const UIController = {
         switch (this.currentTab) {
             case 'instruments':
                 this.renderInstruments();
+                break;
+            case 'scan':
+                this.renderScanPage();
                 break;
             case 'calendar':
                 this.renderCalendar();
@@ -1090,6 +1112,182 @@ const UIController = {
         DataService.removeWaitlistItem(itemId);
         this.showToast('已取消候补', 'success');
         this.renderWaitlist();
+    },
+    
+    renderScanPage() {
+        this.renderScanHistory();
+    },
+    
+    renderScanHistory() {
+        const historyContainer = document.getElementById('scanHistory');
+        const history = DataService.getScanHistory();
+        
+        if (history.length === 0) {
+            historyContainer.innerHTML = '<p class="empty-state">暂无扫码记录</p>';
+            return;
+        }
+        
+        historyContainer.innerHTML = history.map(record => {
+            const instrument = record.instrumentId ? DataService.getInstrumentById(record.instrumentId) : null;
+            const statusColors = {
+                success: '#52c41a',
+                warning: '#faad14',
+                error: '#f5222d'
+            };
+            
+            return `
+                <div class="scan-record">
+                    <div class="scan-record-header">
+                        <span class="scan-record-emoji">${instrument ? instrument.emoji : '📱'}</span>
+                        <div class="scan-record-info">
+                            <h4>${instrument ? instrument.name : record.code}</h4>
+                            <p>${record.time}</p>
+                        </div>
+                        <span class="scan-record-status" style="background: ${statusColors[record.status] || '#999'}">
+                            ${record.status === 'success' ? '成功' : record.status === 'warning' ? '警告' : '失败'}
+                        </span>
+                    </div>
+                    ${record.message ? `<p class="scan-record-message">${record.message}</p>` : ''}
+                    ${instrument ? `
+                        <div class="scan-record-actions">
+                            ${instrument.status === 'available' ? 
+                                `<button class="btn-small" onclick="UIController.showBorrowModal('${instrument.id}')">立即借用</button>` : 
+                                instrument.status === 'borrowed' ?
+                                `<button class="btn-small" onclick="UIController.showInstrumentDetail('${instrument.id}')">查看详情</button>` :
+                                `<button class="btn-small" onclick="UIController.showInstrumentDetail('${instrument.id}')">查看详情</button>`
+                            }
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    },
+    
+    startScan() {
+        this.showToast('正在扫描...', 'info');
+        
+        setTimeout(() => {
+            const instruments = DataService.getInstruments().filter(i => i.status !== 'maintenance');
+            const randomInstrument = instruments[Math.floor(Math.random() * instruments.length)];
+            
+            const record = {
+                id: 'scan_' + Date.now(),
+                code: randomInstrument.id,
+                instrumentId: randomInstrument.id,
+                time: new Date().toLocaleString('zh-CN'),
+                status: 'success',
+                message: `已识别：${randomInstrument.name}`
+            };
+            
+            DataService.addScanRecord(record);
+            this.renderScanHistory();
+            this.showToast(`扫码成功：${randomInstrument.name}`, 'success');
+            
+            this.showModal(`
+                <h2>扫码成功</h2>
+                <div class="scan-result">
+                    <div class="scan-result-instrument">
+                        <span class="scan-result-emoji">${randomInstrument.emoji}</span>
+                        <div>
+                            <h3>${randomInstrument.name}</h3>
+                            <p>${randomInstrument.description}</p>
+                            <p class="scan-result-location">📍 ${randomInstrument.location}</p>
+                            <span class="risk-badge" style="background: ${RISK_LEVELS[randomInstrument.riskLevel].color}">
+                                ${RISK_LEVELS[randomInstrument.riskLevel].label} · 押金¥${RISK_LEVELS[randomInstrument.riskLevel].deposit}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="scan-result-status">
+                        <span class="instrument-status status-${randomInstrument.status}">
+                            ${INSTRUMENT_STATUS[randomInstrument.status]}
+                        </span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="UIController.closeModal()">关闭</button>
+                    ${randomInstrument.status === 'available' ? 
+                        `<button class="btn-confirm" onclick="UIController.showBorrowModal('${randomInstrument.id}')">立即借用</button>` : 
+                        randomInstrument.status === 'borrowed' ?
+                        `<button class="btn-confirm" onclick="UIController.showInstrumentDetail('${randomInstrument.id}')">查看详情</button>` :
+                        ''
+                    }
+                </div>
+            `);
+        }, 1500);
+    },
+    
+    showManualInput() {
+        this.showModal(`
+            <h2>手动输入乐器编码</h2>
+            <div class="form-group">
+                <label>乐器编号：</label>
+                <input type="text" id="manualInstrumentCode" placeholder="请输入乐器编号，如 ins_001">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="UIController.closeModal()">取消</button>
+                <button class="btn-confirm" onclick="UIController.confirmManualInput()">确认查询</button>
+            </div>
+        `);
+    },
+    
+    confirmManualInput() {
+        const code = document.getElementById('manualInstrumentCode').value.trim();
+        
+        if (!code) {
+            this.showToast('请输入乐器编号', 'error');
+            return;
+        }
+        
+        const instrument = DataService.getInstrumentById(code);
+        
+        const record = {
+            id: 'scan_' + Date.now(),
+            code: code,
+            instrumentId: instrument ? instrument.id : null,
+            time: new Date().toLocaleString('zh-CN'),
+            status: instrument ? 'success' : 'error',
+            message: instrument ? `已识别：${instrument.name}` : `未找到编号为 ${code} 的乐器`
+        };
+        
+        DataService.addScanRecord(record);
+        this.renderScanHistory();
+        this.closeModal();
+        
+        if (instrument) {
+            this.showToast(`查询成功：${instrument.name}`, 'success');
+            this.showModal(`
+                <h2>查询结果</h2>
+                <div class="scan-result">
+                    <div class="scan-result-instrument">
+                        <span class="scan-result-emoji">${instrument.emoji}</span>
+                        <div>
+                            <h3>${instrument.name}</h3>
+                            <p>${instrument.description}</p>
+                            <p class="scan-result-location">📍 ${instrument.location}</p>
+                            <span class="risk-badge" style="background: ${RISK_LEVELS[instrument.riskLevel].color}">
+                                ${RISK_LEVELS[instrument.riskLevel].label} · 押金¥${RISK_LEVELS[instrument.riskLevel].deposit}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="scan-result-status">
+                        <span class="instrument-status status-${instrument.status}">
+                            ${INSTRUMENT_STATUS[instrument.status]}
+                        </span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="UIController.closeModal()">关闭</button>
+                    ${instrument.status === 'available' ? 
+                        `<button class="btn-confirm" onclick="UIController.showBorrowModal('${instrument.id}')">立即借用</button>` : 
+                        instrument.status === 'borrowed' ?
+                        `<button class="btn-confirm" onclick="UIController.showInstrumentDetail('${instrument.id}')">查看详情</button>` :
+                        ''
+                    }
+                </div>
+            `);
+        } else {
+            this.showToast(`未找到编号为 ${code} 的乐器`, 'error');
+        }
     },
     
     showModal(content) {

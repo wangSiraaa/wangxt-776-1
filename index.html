@@ -23,6 +23,7 @@
             </div>
             <nav class="nav-tabs">
                 <button class="nav-tab active" data-tab="instruments">乐器列表</button>
+                <button class="nav-tab" data-tab="scan">扫码录入</button>
                 <button class="nav-tab" data-tab="calendar">借用日历</button>
                 <button class="nav-tab" data-tab="myborrows">我的借用</button>
                 <button class="nav-tab" data-tab="repair" id="repairTab">维修队列</button>
@@ -53,6 +54,31 @@
                     </div>
                 </div>
                 <div id="instrumentsGrid" class="instruments-grid"></div>
+            </section>
+
+            <section id="tab-scan" class="tab-content">
+                <div class="section-header">
+                    <h2>📷 扫码录入</h2>
+                </div>
+                <div class="scan-container">
+                    <div class="scan-area">
+                        <div class="scan-viewport">
+                            <div class="scan-frame">
+                                <div class="scan-line"></div>
+                                <span class="scan-icon">📱</span>
+                            </div>
+                        </div>
+                        <p class="scan-hint">将乐器二维码放入框内扫描</p>
+                        <div class="scan-actions">
+                            <button class="btn-scan" onclick="UIController.startScan()">开始扫码</button>
+                            <button class="btn-scan-manual" onclick="UIController.showManualInput()">手动输入</button>
+                        </div>
+                    </div>
+                    <div class="scan-history">
+                        <h3>扫码记录</h3>
+                        <div id="scanHistory" class="scan-history-list"></div>
+                    </div>
+                </div>
             </section>
 
             <section id="tab-calendar" class="tab-content">
