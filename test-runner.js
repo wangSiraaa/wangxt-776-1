@@ -4,6 +4,9 @@
  * 测试场景：
  * 1. 尝试借出维护中的电子琴 → 断言错误提示
  * 2. 尝试押金不足的预约 → 断言候补记录生成
+ * 3. 归还照片验证
+ * 4. 同日高价值乐器借用限制（第二件被拦住）
+ * 5. REGRESSION - 同日高价值乐器限制不可放松
  */
 
 const fs = require('fs');
@@ -177,10 +180,10 @@ const ValidationService = {
                        borrowDateObj.toDateString() === checkDateObj.toDateString();
             });
             
-            if (sameDayHighValueBorrows.length >= 2) {
+            if (sameDayHighValueBorrows.length >= 1) {
                 return { 
                     valid: false, 
-                    message: '同一活动日最多只能借用2件高价值乐器' 
+                    message: '同一活动日最多只能借用1件高价值乐器，您当日已有借用记录' 
                 };
             }
         }
@@ -358,7 +361,7 @@ assertContains(returnWithoutPhoto.message, '上传归还照片', '无照片时�
 assert(returnWithPhoto.valid === true, '有照片时验证应通过');
 
 console.log('');
-console.log('🧪 测试场景 4: 同日高价值乐器借用限制');
+console.log('🧪 测试场景 4: 同日高价值乐器借用限制（第二件被拦住）');
 console.log('--------------------------------------------------');
 StorageManager.init();
 
@@ -371,13 +374,48 @@ assert(result1.success === true, '第1件高价值乐器应可成功借用');
 
 const result2 = BorrowService.borrowInstrument('ins_007', today);
 console.log(`  第2件高价值乐器借用: success=${result2.success}`);
-assert(result2.success === true, '第2件高价值乐器应可成功借用');
+console.log(`  消息: "${result2.message}"`);
+assert(result2.success === false, '同日第2件高价值乐器应被拦住');
+assertContains(result2.message, '最多只能借用1件', '应提示同日最多借1件限制');
+assertContains(result2.message, '当日已有借用记录', '应提示当日已有借用记录');
 
-const result3 = BorrowService.borrowInstrument('ins_002', today);
-console.log(`  第3件高价值乐器借用: success=${result3.success}`);
-console.log(`  消息: "${result3.message}"`);
-assert(result3.success === false, '同日第3件高价值乐器应被拒绝');
-assertContains(result3.message, '最多只能借用2件', '应提示同日最多借2件限制');
+console.log('');
+console.log('🔒 测试场景 5: REGRESSION - 同日高价值乐器限制不可放松');
+console.log('--------------------------------------------------');
+StorageManager.init();
+DataService.updateUser({ balance: 5000 });
+DataService.updateInstrument('ins_002', { status: 'available' });
+DataService.updateInstrument('ins_007', { status: 'available' });
+
+BorrowService.borrowInstrument('ins_003', today);
+const userBorrowsBefore = DataService.getBorrowsByUser('user_001').filter(b => 
+    b.riskLevel === 'high' && 
+    new Date(b.borrowDate).toDateString() === new Date(today).toDateString() &&
+    b.status !== 'returned'
+);
+console.log(`  当日已借高价值乐器数量: ${userBorrowsBefore.length}`);
+assert(userBorrowsBefore.length === 1, '当日应已有1件高价值乐器借出');
+
+const regressionResult1 = BorrowService.borrowInstrument('ins_002', today);
+console.log(`  尝试借第2件高价值(电子琴): success=${regressionResult1.success}`);
+assert(regressionResult1.success === false, 'REGRESSION: 第2件高价值乐器必须被拒绝');
+
+const regressionResult2 = BorrowService.borrowInstrument('ins_007', today);
+console.log(`  尝试借第2件高价值(萨克斯): success=${regressionResult2.success}`);
+assert(regressionResult2.success === false, 'REGRESSION: 第2件高价值乐器必须被拒绝');
+
+const validationCheck = ValidationService.canBorrowInstrument('ins_002', today, 'user_001');
+console.log(`  校验服务返回: valid=${validationCheck.valid}, message="${validationCheck.message}"`);
+assert(validationCheck.valid === false, 'REGRESSION: 校验服务必须判定第2件无效');
+assertContains(validationCheck.message, '1件', 'REGRESSION: 限制数量必须是1件，不可放松为2件');
+
+const userBorrowsAfter = DataService.getBorrowsByUser('user_001').filter(b => 
+    b.riskLevel === 'high' && 
+    new Date(b.borrowDate).toDateString() === new Date(today).toDateString() &&
+    b.status !== 'returned'
+);
+console.log(`  最终当日高价值乐器数量: ${userBorrowsAfter.length}`);
+assert(userBorrowsAfter.length === 1, 'REGRESSION: 最终当日高价值乐器数量应仍为1件');
 
 console.log('');
 console.log('========================================');

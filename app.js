@@ -225,10 +225,10 @@ const ValidationService = {
                        borrowDateObj.toDateString() === checkDateObj.toDateString();
             });
             
-            if (sameDayHighValueBorrows.length >= 2) {
+            if (sameDayHighValueBorrows.length >= 1) {
                 return { 
                     valid: false, 
-                    message: '同一活动日最多只能借用2件高价值乐器' 
+                    message: '同一活动日最多只能借用1件高价值乐器，您当日已有借用记录' 
                 };
             }
         }
