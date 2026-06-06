@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区乐器共享柜</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🎵 社区乐器共享柜</h1>
+                <div class="user-info">
+                    <span id="userName">居民：张小明</span>
+                    <span id="userBalance" class="balance">押金余额：¥500</span>
+                    <select id="roleSelector" class="role-select">
+                        <option value="resident">居民视角</option>
+                        <option value="socialworker">社工视角</option>
+                        <option value="volunteer">维修志愿者视角</option>
+                    </select>
+                </div>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="instruments">乐器列表</button>
+                <button class="nav-tab" data-tab="calendar">借用日历</button>
+                <button class="nav-tab" data-tab="myborrows">我的借用</button>
+                <button class="nav-tab" data-tab="repair" id="repairTab">维修队列</button>
+                <button class="nav-tab" data-tab="activities">社区活动</button>
+                <button class="nav-tab" data-tab="waitlist" id="waitlistTab">候补列表</button>
+            </nav>
+        </header>
+
+        <main class="app-main">
+            <section id="tab-instruments" class="tab-content active">
+                <div class="section-header">
+                    <h2>🎸 可借乐器</h2>
+                    <div class="filter-bar">
+                        <label>风险等级：</label>
+                        <select id="riskFilter">
+                            <option value="all">全部</option>
+                            <option value="low">低风险</option>
+                            <option value="medium">中风险</option>
+                            <option value="high">高风险</option>
+                        </select>
+                        <label>状态：</label>
+                        <select id="statusFilter">
+                            <option value="all">全部</option>
+                            <option value="available">可借</option>
+                            <option value="borrowed">已借出</option>
+                            <option value="maintenance">维护中</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="instrumentsGrid" class="instruments-grid"></div>
+            </section>
+
+            <section id="tab-calendar" class="tab-content">
+                <div class="section-header">
+                    <h2>📅 借用日历</h2>
+                    <div class="calendar-controls">
+                        <button id="prevMonth">◀</button>
+                        <span id="currentMonth">2024年1月</span>
+                        <button id="nextMonth">▶</button>
+                    </div>
+                </div>
+                <div id="calendarGrid" class="calendar-grid"></div>
+                <div id="calendarDetail" class="calendar-detail">
+                    <h3>选择日期查看可用乐器</h3>
+                </div>
+            </section>
+
+            <section id="tab-myborrows" class="tab-content">
+                <div class="section-header">
+                    <h2>📋 我的借用记录</h2>
+                </div>
+                <div id="myBorrowsList" class="borrows-list"></div>
+            </section>
+
+            <section id="tab-repair" class="tab-content">
+                <div class="section-header">
+                    <h2>🔧 维修队列</h2>
+                    <button id="addRepairBtn" class="btn-primary" style="display:none;">添加维修</button>
+                </div>
+                <div id="repairQueue" class="repair-queue"></div>
+            </section>
+
+            <section id="tab-activities" class="tab-content">
+                <div class="section-header">
+                    <h2>🎉 社区活动</h2>
+                </div>
+                <div id="activitiesList" class="activities-list"></div>
+            </section>
+
+            <section id="tab-waitlist" class="tab-content">
+                <div class="section-header">
+                    <h2>⏳ 候补列表</h2>
+                </div>
+                <div id="waitlistContent" class="waitlist-content"></div>
+            </section>
+        </main>
+
+        <div id="modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <div id="modalBody"></div>
+            </div>
+        </div>
+
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "community-music-locker",
+  "version": "1.0.0",
+  "description": "社区乐器共享柜 Web 前端应用",
+  "scripts": {
+    "test": "node test-runner.js",
+    "test:e2e": "node test-e2e.js",
+    "start": "npx http-server -p 8080 -c-1",
+    "serve": "python3 -m http.server 8080"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "music",
+    "community",
+    "instrument-sharing"
+  ],
+  "license": "MIT"
+}
